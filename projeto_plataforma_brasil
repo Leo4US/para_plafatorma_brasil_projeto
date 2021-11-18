@@ -1,0 +1,132 @@
+install.packages("tidyverse")
+install.packages("readr")
+install.packages("quanteda")
+install.packages("wordcloud")
+install.packages("ggplot2")
+install.packages("DT")
+
+library("readr")
+library("tidyverse")
+library("quanteda")
+library("wordcloud")
+library("ggplot2")
+library("DT")
+
+coleta01_csv <- read_csv("/content/coleta01.csv.csv")
+coleta02_csv <- read_csv("/content/coleta02.csv.csv")
+
+View(coleta01_csv)
+View(coleta02_csv)
+
+corpus01 <- corpus(coleta01_csv)
+corpus01
+
+corpus02 <- corpus(coleta02_csv)
+corpus02
+
+corpora_beto <- rbind(corpora01, corpora02)
+
+corpora.dfm<-dfm(corpora_beto,
+                 remove_punct = TRUE,
+                 case_insensitive=TRUE,
+                 remove = stopwords("portuguese"),
+                 verbose = TRUE)
+colnames(corpora.dfm)
+
+corpus(coleta01_csv)
+corpus01 <- corpus(coleta01_csv)
+corpus01
+
+corpus(coleta02_csv)
+corpus02 <- corpus(coleta02_csv)
+corpus02
+
+corpora_beto <- rbind(corpus01, corpus02)
+
+library(MASS)
+save(corpora.dfm, file = "corpora.dfm.RData")
+
+tag.dfm.corpora <- dfm_select(corpora.dfm, pattern = ("#*"))
+toptag.corpora <- names(topfeatures(tag.dfm.corpora, 50))
+
+head(toptag.corpora, 50)
+
+tag_fcm.corpora <- fcm(tag.dfm.corpora)
+
+colnames(tag_fcm.corpora)
+
+install.packages("quanteda.textplots")
+library(quanteda.textplots)
+
+
+topgat_fcm.corpora <- fcm_select(tag_fcm.corpora, pattern = toptag.corpora)
+
+head(topgat_fcm.corpora)
+
+textplot_network(topgat_fcm.corpora, min_freq = 0.1, edge_alpha = 0.8,edge_size = 4)
+
+set.seed(132)
+textplot_wordcloud(tag.dfm.corpora, max_words = 100)
+
+corpus01.v <- corpus01
+corpus02.v <- corpus02
+
+# atualização de versão 3.0 quanteda, logo abaixo
+
+install.packages("quanteda.textstats")
+library(quanteda.textstats)
+
+
+corpus01.lower.v <- char_tolower(corpus01.v)
+
+corpus1.word.v <- tokens(corpus01.lower.v,
+                          remove_punct = TRUE) %>% as.character()
+
+corpus1.dfm.2 <- dfm(corpus01.lower.v,
+                      remove_punct = TRUE,
+                      remove = stopwords("portuguese"))
+
+corpus01.wl<-textstat_frequency(corpus1.dfm.2)
+View(corpus01.wl)
+
+theme_set(theme_minimal())
+textstat_frequency(corpus1.dfm.2, n = 50) %>%
+  ggplot(aes(x = rank, y = frequency)) +
+  geom_point() +
+  labs(x = "Frequency rank", y = "Term frequency")
+
+  tri.grams<-textstat_collocations(
+  corpus01,
+  method = "lambda",
+  size = 3,
+  min_count = 5,
+  smoothing = 0.5,
+  tolower = TRUE)
+head(tri.grams)
+
+corpus02.lower.v <- char_tolower(corpus02.v)
+
+corpus2.word.v <- tokens(corpus02.lower.v,
+                          remove_punct = TRUE) %>% as.character()
+
+corpus2.dfm.2 <- dfm(corpus02.lower.v,
+                      remove_punct = TRUE,
+                      remove = stopwords("portuguese"))
+
+corpus02.wl<-textstat_frequency(corpus2.dfm.2)
+View(corpus02.wl)
+
+theme_set(theme_minimal())
+textstat_frequency(corpus2.dfm.2, n = 50) %>%
+  ggplot(aes(x = rank, y = frequency)) +
+  geom_point() +
+  labs(x = "Frequency rank", y = "Term frequency")
+
+  tri.grams<-textstat_collocations(
+  corpora02,
+  method = "lambda",
+  size = 3,
+  min_count = 5,
+  smoothing = 0.5,
+  tolower = TRUE)
+head(tri.grams)
